@@ -238,9 +238,8 @@
    if (available)
    {
        // Only enable the button if our isSpeechAuthorizationRequestPending & isRequestingRecordPermission flags are NO because during testing
-       // I've seen this delegate method get called with YES passed to the available parameter before we actually grant permission in the alert shown when
-       // SFSpeechRecognizer's +requestAuthorization: method is called.
-       self.recordButton.enabled = (!self.isSpeechAuthorizationRequestPending 
+       // I've seen this delegate method get called with YES passed to the available parameter before we actually grant permission in the alert shown when SFSpeechRecognizer's +requestAuthorization: method is called.
+       self.recordButton.enabled = (!self.isSpeechAuthorizationRequestPending
                                     && !self.isRequestingRecordPermission);
        [self.recordButton setTitle:@"Start Recording"
                           forState:UIControlStateNormal];
@@ -306,6 +305,22 @@
     return _audioEngine;
 }
 
+//#pragma mark - Custom LM Support
+-(SFSpeechLanguageModelConfiguration*)lmConfiguration
+{
+    if (_lmConfiguration == nil)
+    {
+        NSArray<NSURL *> *urls = [[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory inDomains:NSUserDomainMask];
+        NSURL *outputDir = [urls firstObject];
+        NSURL *dynamicLanguageModel = [outputDir URLByAppendingPathComponent:@"LM"];
+        NSURL *dynamicVocabulary = [outputDir URLByAppendingPathComponent:@"Vocab"];
+        
+        SFSpeechLanguageModelConfiguration *configuration = [[SFSpeechLanguageModelConfiguration alloc] initWithLanguageModel:dynamicLanguageModel vocabulary:dynamicVocabulary];
+        _lmConfiguration = configuration;
+    }
+    return _lmConfiguration;
+}
+
 #pragma mark - Setters
 -(void)setIsRequestingRecordPermission:(BOOL)isRequestingRecordPermission
 {
@@ -331,22 +346,6 @@
     {
         [self.spinner stopAnimating];
     }
-}
-
-#pragma mark - Custom LM Support
--(SFSpeechLanguageModelConfiguration*)lmConfiguration
-{
-    if (_lmConfiguration == nil)
-    {
-        NSArray<NSURL *> *urls = [[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory inDomains:NSUserDomainMask];
-        NSURL *outputDir = [urls firstObject];
-        NSURL *dynamicLanguageModel = [outputDir URLByAppendingPathComponent:@"LM"];
-        NSURL *dynamicVocabulary = [outputDir URLByAppendingPathComponent:@"Vocab"];
-        
-        SFSpeechLanguageModelConfiguration *configuration = [[SFSpeechLanguageModelConfiguration alloc] initWithLanguageModel:dynamicLanguageModel vocabulary:dynamicVocabulary];
-        _lmConfiguration = configuration;
-    }
-    return _lmConfiguration;
 }
 
 @end
